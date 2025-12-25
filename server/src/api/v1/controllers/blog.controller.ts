@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 import { BlogService } from "@/api/v1/services/blog.service";
 import { BlogInput } from "@/api/v1/validators/blog.schema";
+import { ResponseHelper } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
 
 const blogService = new BlogService();
@@ -13,10 +14,6 @@ export const createBlogHandler = asyncHandler(
 
     const result = await blogService.createBlog(input, blogImage);
 
-    res.status(200).json({
-      status: "ok",
-      message: "Blog created successfully",
-      data: result,
-    });
+    return ResponseHelper.created(res, "Blog created successfully", result);
   },
 );

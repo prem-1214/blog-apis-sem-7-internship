@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import { Types } from "mongoose";
 
 import { UserService } from "@/api/v1/services/user.service";
-import { asyncHandler } from "@/utils/asyncHandler";
+import { ResponseHelper } from "@/utils/ApiResponse";
 import { BadRequestError } from "@/utils/AppError";
+import { asyncHandler } from "@/utils/asyncHandler";
 
 const userService = new UserService();
 
@@ -15,10 +16,6 @@ export const getUserProfileHandler = asyncHandler(
 
     const response = await userService.getUserById(userId);
 
-    res.status(200).json({
-      status: "ok",
-      message: "User profile fetched successfully.",
-      data: response,
-    });
+    return ResponseHelper.ok(res, "User profile fetched successfully", response);
   },
 );

@@ -2,8 +2,12 @@ import { Request, Response } from "express";
 import { Types } from "mongoose";
 
 import { AuthService } from "@/api/v1/services/auth.service";
-import { profileUpdateSchema } from "@/schemas/profileUpdateSchema";
+import {
+  profileUpdateSchema,
+  profileUpdateSchemaType,
+} from "@/schemas/profileUpdateSchema";
 import { LoginInput, RegisterInput } from "@/types/auth/auth.types";
+import { ApiResponse } from "@/utils/ApiResponse";
 import { BadRequestError } from "@/utils/AppError";
 import { asyncHandler } from "@/utils/asyncHandler";
 
@@ -15,7 +19,7 @@ export const registerHandler = asyncHandler(
     const { username, email, password, firstName, lastName } = req.body;
 
     if (!username || !email || !password || !firstName || !lastName)
-      throw new BadRequestError("all fields are required.");
+      throw new BadRequestError("All fields are required.");
 
     const result = await authService.register(req.body as RegisterInput);
 
@@ -25,11 +29,9 @@ export const registerHandler = asyncHandler(
       .status(201)
       .cookie("accessToken", accessToken)
       .cookie("refreshToken", refreshToken)
-      .json({
-        status: "ok",
-        message: "User registration successfull",
-        data: result.user,
-      });
+      .json(
+        new ApiResponse(201, "User registered successfully", result.user),
+      );
   },
 );
 
@@ -49,11 +51,9 @@ export const loginHandler = asyncHandler(
       .status(200)
       .cookie("accessToken", accessToken)
       .cookie("refreshToken", refreshToken)
-      .json({
-        status: "ok",
-        message: "User logged in successfully.",
-        data: response.user,
-      });
+      .json(
+        new ApiResponse(200, "User logged in successfully", response.user),
+      );
   },
 );
 
@@ -67,28 +67,26 @@ export const resetPasswordHandler = asyncHandler(
 
     const result = await authService.resetPassword(userId, newPassword);
 
-    res.status(200).json({
-      status: "ok",
-      message: "Password updated successfully.",
-      data: result.user,
-    });
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, "Password updated successfully", result.user),
+      );
   },
 );
 
 // update profile handler
 export const updateProfileHandler = asyncHandler(
   async (req: Request, res: Response) => {
-    const userInput: { username: string; password: string } = req.body;
+    const userInput: profileUpdateSchemaType = req.body;
     const userId = req.user._id as Types.ObjectId;
 
     const parsedData = profileUpdateSchema.parse(userInput);
 
     const result = await authService.updateProfile(parsedData, userId);
 
-    res.status(200).json({
-      status: "ok",
-      message: "Profile updated successfully.",
-      data: result,
-    });
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Profile updated successfully", result));
   },
 );

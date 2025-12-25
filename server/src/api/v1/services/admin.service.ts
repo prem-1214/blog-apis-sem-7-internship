@@ -5,7 +5,7 @@ import { IUser } from "@/types/user.types";
 import {
   BadRequestError,
   InternalServerError,
-  NOTFoundError,
+  NotFoundError,
 } from "@/utils/AppError";
 
 export class AdminService {
@@ -23,7 +23,7 @@ export class AdminService {
       const id = new Types.ObjectId(userId);
       const result = await this.adminRepository.manageAccountStatus(id, status);
 
-      if (!result) throw new NOTFoundError("User not found!");
+      if (!result) throw new NotFoundError("User not found!");
 
       if (result.isAccountActive !== status) {
         return result;
@@ -43,7 +43,7 @@ export class AdminService {
       const id = new Types.ObjectId(userId);
       const result = await this.adminRepository.deleteUser(id);
 
-      if (!result) throw new NOTFoundError("User not found!");
+      if (!result) throw new NotFoundError("User not found!");
 
       return result;
     } catch (error) {
@@ -55,7 +55,7 @@ export class AdminService {
   async getAllUsers(): Promise<IUser[]> {
     try {
       const data = await this.adminRepository.getAllUsers();
-      if(!data) throw new NOTFoundError("Users not found!");
+      if(!data) throw new NotFoundError("Users not found!");
       return data;
     } catch (error) {
       if (error instanceof Error) throw error;

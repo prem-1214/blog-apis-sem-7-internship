@@ -6,27 +6,22 @@ import { authenticate } from "@/middlewares/authenticate.middleware";
 import { checkRole } from "@/middlewares/checkRole.middleware.ts";
 
 const userRouter = Router();
+userRouter.use(authenticate, checkRole("user"));
 
 userRouter.get(
   "/home",
-  authenticate,
-  checkRole("user"),
   (req: Request, res: Response) => {
-    res.send({ message: "welcome User" });
+    res.send({ message: `welcome ${req.user?.firstName}` });
   },
 );
 
 userRouter.patch(
   "/profile-update",
-  authenticate,
-  checkRole("user"),
   updateProfileHandler,
 );
 
 userRouter.get(
   "/profile",
-  authenticate,
-  checkRole("user"),
   getUserProfileHandler,
 );
 

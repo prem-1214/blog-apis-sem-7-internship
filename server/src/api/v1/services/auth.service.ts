@@ -8,10 +8,11 @@ import { IUser } from "@/types/user.types";
 import {
   AppError,
   BadRequestError,
-  NOTFoundError,
+  NotFoundError,
   UnauthorizedError,
 } from "@/utils/AppError";
 import { generateAccessToken, generateRefreshToken } from "@/utils/token.util";
+import { profileUpdateSchemaType } from "@/schemas/profileUpdateSchema";
 
 export class AuthService {
   private authRepository: AuthRepository;
@@ -87,7 +88,7 @@ export class AuthService {
     if (existingUser?.username !== data.username)
       throw new BadRequestError("Username not found.");
 
-    if (!existingUser) throw new NOTFoundError("User not found");
+    if (!existingUser) throw new NotFoundError("User not found");
 
     const verifiedPassword = await bcrypt.compare(
       data.password,
@@ -154,7 +155,7 @@ export class AuthService {
   }
 
   async updateProfile(
-    userInput: { username?: string; password?: string },
+    userInput: profileUpdateSchemaType,
     userId: Types.ObjectId,
   ): Promise<IUser> {
     try {
