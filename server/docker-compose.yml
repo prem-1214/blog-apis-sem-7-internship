@@ -1,0 +1,49 @@
+services:
+  blog-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+      - redis
+    command: npx ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/server.ts
+    networks:
+      - blog-network
+
+  mongo:
+    image: mongo:8.0
+    container_name: blog_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - blog-network
+
+  redis:
+    image: redis:alpine
+    container_name: blog_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - blog-network
+
+volumes:
+  mongo-data:
+  redis-data:
+networks:
+  blog-network:
+    name: blog-network

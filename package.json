@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "lint": "cd server && npx eslint --fix"
+  },
+  "lint-staged": {
+    "server/**/*.ts": "npm run lint"
+  }
+}
