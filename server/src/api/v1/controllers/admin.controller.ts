@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 
 import { AdminService } from "@/api/v1/services/admin.service";
-import { ResponseHelper } from "@/utils/ApiResponse";
+import { SuccessMessages } from "@/constants/successMessage";
+import { successResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
 
 const adminService = new AdminService();
@@ -13,7 +14,11 @@ export const manageAccountStatusHandler = asyncHandler(
 
     const result = await adminService.manageAccountStatus(userId, status);
 
-    return ResponseHelper.ok(res, "Account status updated successfully", result);
+    const response = successResponse(result, {
+      message: SuccessMessages.UPDATED("Account status"),
+    });
+
+    return res.json(response);
   },
 );
 
@@ -23,7 +28,11 @@ export const deleteUserHandler = asyncHandler(
 
     const result = await adminService.deleteUser(userId);
 
-    return ResponseHelper.ok(res, "User deleted successfully", result);
+    const response = successResponse(result, {
+      message: SuccessMessages.DELETED("User"),
+    });
+
+    return res.json(response);
   },
 );
 
@@ -31,6 +40,10 @@ export const getAllUsersHandler = asyncHandler(
   async (req: Request, res: Response) => {
     const result = await adminService.getAllUsers();
 
-    return ResponseHelper.ok(res, "Users fetched successfully", result);
+    const response = successResponse(result, {
+      message: SuccessMessages.FETCHED("Users"),
+    });
+
+    return res.json(response);
   },
 );

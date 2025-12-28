@@ -32,9 +32,7 @@ export class AppError extends Error {
   }
 }
 
-// ============================================
 // Predefined Error Classes (4xx - Client Errors)
-// ============================================
 
 export class BadRequestError extends AppError {
   constructor(

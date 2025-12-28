@@ -2,22 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 
 import { config } from "@/config/config";
+import { errorResponse } from "@/utils/ApiResponse";
 import { AppError } from "@/utils/AppError";
 import { logger } from "@/utils/logger";
-
-
-// Error response interface for type safety
-interface ErrorResponse {
-  success: false;
-  statusCode: number;
-  status: "fail" | "error";
-  message: string;
-  code?: string;
-  details?: Record<string, unknown>;
-  stack?: string;
-  timestamp: string;
-  path: string;
-}
 
 // Format Zod validation errors into readable format
 const formatZodError = (error: ZodError): Record<string, string[]> => {
@@ -63,7 +50,6 @@ const handleJWTExpiredError = (): AppError => {
 };
 
 // Global Error Handler Middleware
-// Catches all errors and sends standardized response
 export const globalErrorHandler = (
   error: Error | AppError | ZodError | unknown,
   req: Request,
@@ -72,9 +58,8 @@ export const globalErrorHandler = (
 ): void => {
   // Default error values
   let statusCode = 500;
-  let status: "fail" | "error" = "error";
   let message = "Something went wrong";
-  let code: string | undefined = "INTERNAL_ERROR";
+  let code = "INTERNAL_ERROR";
   let details: Record<string, unknown> | undefined;
   let stack: string | undefined;
 
@@ -89,14 +74,12 @@ export const globalErrorHandler = (
   // Handle known error types
   if (error instanceof AppError) {
     statusCode = error.statusCode;
-    status = error.status;
     message = error.message;
-    code = error.code;
+    code = error.code || "APP_ERROR";
     details = error.details;
     stack = error.stack;
   } else if (error instanceof ZodError) {
     statusCode = 422;
-    status = "fail";
     message = "Validation failed";
     code = "VALIDATION_ERROR";
     details = { errors: formatZodError(error) };
@@ -108,7 +91,7 @@ export const globalErrorHandler = (
       );
       statusCode = appError.statusCode;
       message = appError.message;
-      code = appError.code;
+      code = appError.code || "CAST_ERROR";
     } else if (
       error.name === "MongoServerError" &&
       (error as Error & { code?: number }).code === 11000
@@ -118,46 +101,29 @@ export const globalErrorHandler = (
       );
       statusCode = appError.statusCode;
       message = appError.message;
-      code = appError.code;
+      code = appError.code || "DUPLICATE_KEY";
     } else if (error.name === "JsonWebTokenError") {
       const appError = handleJWTError();
       statusCode = appError.statusCode;
       message = appError.message;
-      code = appError.code;
+      code = appError.code || "JWT_ERROR";
     } else if (error.name === "TokenExpiredError") {
       const appError = handleJWTExpiredError();
       statusCode = appError.statusCode;
       message = appError.message;
-      code = appError.code;
+      code = appError.code || "TOKEN_EXPIRED";
     } else {
       message = error.message || message;
       stack = error.stack;
     }
   }
 
-  // Build response object
-  const errorResponse: ErrorResponse = {
-    success: false,
-    statusCode,
-    status,
-    message,
+  // Build error response using helper
+  const response = errorResponse(message, {
     code,
     details,
-    timestamp: new Date().toISOString(),
-    path: req.originalUrl,
-  };
-
-  // Include stack trace only in development
-  if (config.get("NODE_ENV") === "development" && stack) {
-    errorResponse.stack = stack;
-  }
-
-  // Remove undefined fields
-  (Object.keys(errorResponse) as Array<keyof ErrorResponse>).forEach((key) => {
-    if (errorResponse[key] === undefined) {
-      delete errorResponse[key];
-    }
+    stack: config.get("NODE_ENV") === "development" ? stack : undefined,
   });
 
-  res.status(statusCode).json(errorResponse);
+  res.status(statusCode).json(response);
 };
