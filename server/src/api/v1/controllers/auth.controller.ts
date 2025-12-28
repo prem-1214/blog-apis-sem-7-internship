@@ -1,19 +1,26 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 
-import { AuthService } from "@/api/v1/services/auth.service";
-import { SuccessMessages } from "@/constants/successMessage";
+import { authService } from "@/api/v1/services/auth.service";
 import {
   profileUpdateSchema,
   profileUpdateSchemaType,
-} from "@/schemas/profileUpdateSchema";
+} from "@/api/v1/validators/profileUpdateSchema";
+import { config } from "@/config/config";
+import { SuccessMessages } from "@/constants/successMessage";
 import { LoginInput, RegisterInput } from "@/types/auth.types";
-import { UserResponseDTO } from "@/types/response.types";
+import { UserResponseDTO } from "@/types/user.types";
 import { successResponse } from "@/utils/ApiResponse";
 import { BadRequestError } from "@/utils/AppError";
 import { asyncHandler } from "@/utils/asyncHandler";
 
-const authService = new AuthService();
+// Cookie options for secure token handling
+const getCookieOptions = (maxAge: number) => ({
+  httpOnly: true,
+  secure: config.get("NODE_ENV") === "production",
+  sameSite: "strict" as const,
+  maxAge,
+});
 
 // register handler
 export const registerHandler = asyncHandler(
@@ -27,8 +34,12 @@ export const registerHandler = asyncHandler(
 
     return res
       .status(201)
-      .cookie("accessToken", accessToken)
-      .cookie("refreshToken", refreshToken)
+      .cookie("accessToken", accessToken, getCookieOptions(15 * 60 * 1000)) // 15 minutes
+      .cookie(
+        "refreshToken",
+        refreshToken,
+        getCookieOptions(7 * 24 * 60 * 60 * 1000),
+      ) // 7 days
       .json(response);
   },
 );
@@ -44,8 +55,26 @@ export const loginHandler = asyncHandler(
     });
 
     return res
-      .cookie("accessToken", accessToken)
-      .cookie("refreshToken", refreshToken)
+      .cookie("accessToken", accessToken, getCookieOptions(15 * 60 * 1000)) // 15 minutes
+      .cookie(
+        "refreshToken",
+        refreshToken,
+        getCookieOptions(7 * 24 * 60 * 60 * 1000),
+      ) // 7 days
+      .json(response);
+  },
+);
+
+// logout handler
+export const logoutHandler = asyncHandler(
+  async (req: Request, res: Response) => {
+    const response = successResponse(null, {
+      message: SuccessMessages.LOGOUT,
+    });
+
+    return res
+      .clearCookie("accessToken")
+      .clearCookie("refreshToken")
       .json(response);
   },
 );

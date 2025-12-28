@@ -1,11 +1,9 @@
 import { Request, Response } from "express";
 
-import { AdminService } from "@/api/v1/services/admin.service";
+import { adminService } from "@/api/v1/services/admin.service";
 import { SuccessMessages } from "@/constants/successMessage";
 import { successResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
-
-const adminService = new AdminService();
 
 export const manageAccountStatusHandler = asyncHandler(
   async (req: Request, res: Response) => {

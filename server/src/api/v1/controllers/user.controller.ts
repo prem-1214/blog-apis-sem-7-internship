@@ -1,13 +1,11 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 
-import { UserService } from "@/api/v1/services/user.service";
+import { userService } from "@/api/v1/services/user.service";
 import { SuccessMessages } from "@/constants/successMessage";
 import { successResponse } from "@/utils/ApiResponse";
 import { BadRequestError } from "@/utils/AppError";
 import { asyncHandler } from "@/utils/asyncHandler";
-
-const userService = new UserService();
 
 export const getUserProfileHandler = asyncHandler(
   async (req: Request, res: Response) => {

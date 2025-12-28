@@ -12,7 +12,7 @@ const permissionSchema = new Schema<IPermission>(
       type: [String],
       required: true,
     },
-    resources: {
+    resource: {
       type: [String],
       required: true,
     },

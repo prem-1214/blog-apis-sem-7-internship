@@ -1,27 +1,25 @@
 import { Types } from "mongoose";
 
-import { AdminRepository } from "@/api/v1/repositories/admin.repository";
-import { IUser } from "@/types/user.types";
+import { adminRepository } from "@/api/v1/repositories/admin.repository";
+import { UserDocument } from "@/types/user.types";
 import {
   BadRequestError,
   InternalServerError,
   NotFoundError,
 } from "@/utils/AppError";
 
-export class AdminService {
-  private adminRepository: AdminRepository;
-
-  constructor() {
-    this.adminRepository = new AdminRepository();
-  }
-
-  async manageAccountStatus(userId: string, status: boolean): Promise<IUser> {
+// admin service object
+export const adminService = {
+  manageAccountStatus: async (
+    userId: string,
+    status: boolean,
+  ): Promise<UserDocument> => {
     try {
       if (!Types.ObjectId.isValid(userId))
         throw new BadRequestError("Invalid user id");
 
       const id = new Types.ObjectId(userId);
-      const result = await this.adminRepository.manageAccountStatus(id, status);
+      const result = await adminRepository.manageAccountStatus(id, status);
 
       if (!result) throw new NotFoundError("User not found!");
 
@@ -33,15 +31,15 @@ export class AdminService {
       if (error instanceof Error) throw error;
       throw new InternalServerError("Error updating account status!");
     }
-  }
+  },
 
-  async deleteUser(userId: string): Promise<IUser> {
+  deleteUser: async (userId: string): Promise<UserDocument> => {
     try {
       if (!Types.ObjectId.isValid(userId))
         throw new BadRequestError("Invalid user id");
 
       const id = new Types.ObjectId(userId);
-      const result = await this.adminRepository.deleteUser(id);
+      const result = await adminRepository.deleteUser(id);
 
       if (!result) throw new NotFoundError("User not found!");
 
@@ -50,16 +48,16 @@ export class AdminService {
       if (error instanceof Error) throw error;
       throw new InternalServerError("Error deleting user!");
     }
-  }
+  },
 
-  async getAllUsers(): Promise<IUser[]> {
+  getAllUsers: async (): Promise<UserDocument[]> => {
     try {
-      const data = await this.adminRepository.getAllUsers();
-      if(!data) throw new NotFoundError("Users not found!");
+      const data = await adminRepository.getAllUsers();
+      if (!data) throw new NotFoundError("Users not found!");
       return data;
     } catch (error) {
       if (error instanceof Error) throw error;
       throw new InternalServerError("Error fetching users!");
     }
-  }
-}
+  },
+};

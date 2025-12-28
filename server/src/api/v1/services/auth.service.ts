@@ -1,12 +1,13 @@
 import bcrypt from "bcryptjs";
 import { Types } from "mongoose";
 
-import { AuthRepository } from "@/api/v1/repositories/auth.repository";
+import { authRepository } from "@/api/v1/repositories/auth.repository";
 import { cacheService } from "@/api/v1/services/cache.service";
-import { loginSchema, registerSchema } from "@/schemas/authSchema";
-import { profileUpdateSchemaType } from "@/schemas/profileUpdateSchema";
-import { LoginInput, RegisterInput } from "@/types/auth.types";
-import { IUser, UserResponseDTO } from "@/types/user.types";
+import { loginSchema, registerSchema } from "@/api/v1/validators/authSchema";
+import { profileUpdateSchemaType } from "@/api/v1/validators/profileUpdateSchema";
+import { userMapper } from "@/mappers/user.mapper";
+import { AuthResponseDTO, LoginInput, RegisterInput } from "@/types/auth.types";
+import { UserDocument, UserResponseDTO } from "@/types/user.types";
 import {
   AppError,
   BadRequestError,
@@ -15,45 +16,36 @@ import {
 } from "@/utils/AppError";
 import { generateAccessToken, generateRefreshToken } from "@/utils/token.util";
 
-export class AuthService {
-  private authRepository: AuthRepository;
-
-  constructor() {
-    this.authRepository = new AuthRepository();
-  }
-
+// auth service object
+export const authService = {
   // register service
-  async register(data: RegisterInput): Promise<{
-    user: UserResponseDTO;
-    token: { accessToken: string; refreshToken: string };
-  }> {
+  register: async (data: RegisterInput): Promise<AuthResponseDTO> => {
     const parsedData = registerSchema.parse(data);
 
     if (parsedData.password.length < 8)
       throw new BadRequestError("Password must be 8 characters long.");
 
-    const existingUser = await this.authRepository.findByEmail(
-      parsedData.email,
-    );
+    const existingUser = await authRepository.findByEmail(parsedData.email);
 
     if (existingUser)
       throw new BadRequestError("User already exists with this email");
 
-    // TODO: email varification for actual users
-
     // check if userName is available
-    const userNameAlreadyTaken =
-      await this.authRepository.checkUserNameAvailability(parsedData.userName);
+    const userNameAlreadyTaken = await authRepository.checkUserNameAvailability(
+      parsedData.userName,
+    );
 
     if (userNameAlreadyTaken)
       throw new BadRequestError("This userName is already taken");
 
     const hashedPassowrd = await bcrypt.hash(parsedData.password, 10);
-    // send hashed password in db
-    const user = await this.authRepository.createUser({
+
+    // Create user and get UserResponseDTO
+    const user = await authRepository.createUser({
       ...parsedData,
       password: hashedPassowrd,
     });
+
     const accessToken = generateAccessToken({
       _id: user._id,
       userName: user.userName,
@@ -62,7 +54,7 @@ export class AuthService {
     });
     const refreshToken = generateRefreshToken(user._id);
 
-    await this.authRepository.updateRefreshToken(user._id, refreshToken);
+    await authRepository.updateRefreshToken(user._id, refreshToken);
 
     cacheService.setCache(
       `refreshToken:${user._id}`,
@@ -77,45 +69,44 @@ export class AuthService {
         refreshToken,
       },
     };
-  }
+  },
 
-  async login(data: LoginInput): Promise<{
-    user: IUser;
-    token: { accessToken: string; refreshToken: string };
-  }> {
+  login: async (data: LoginInput): Promise<AuthResponseDTO> => {
     const parsedData = loginSchema.parse(data);
 
     if (parsedData.password.length < 8)
       throw new BadRequestError("Password must be 8 characters long.");
 
-    const existingUser = (await this.authRepository.findByEmail(
+    // Use findByEmailForAuth to get full user with password
+    const existingUser = await authRepository.findByEmailForAuth(
       parsedData.email,
-    )) as IUser;
-
-    if (!existingUser?.isAccountActive)
-      throw new UnauthorizedError(
-        "Your Account is Currently disabled ! Please contact admin",
-      );
-
-    if (existingUser?.userName !== parsedData.userName)
-      throw new BadRequestError("Username not found.");
+    );
 
     if (!existingUser) throw new NotFoundError("User not found");
+
+    if (!existingUser.isAccountActive)
+      throw new UnauthorizedError(
+        "Your Account is Currently disabled! Please contact support.",
+      );
+
+    if (existingUser.userName !== parsedData.userName)
+      throw new BadRequestError("Username not found.");
 
     const verifiedPassword = await bcrypt.compare(
       parsedData.password,
       existingUser.password,
     );
 
-    if (!verifiedPassword) throw new UnauthorizedError("wrong Password!");
+    if (!verifiedPassword) throw new UnauthorizedError("Wrong Password!");
 
-    const accessToken = generateAccessToken(existingUser);
+    const accessToken = generateAccessToken({
+      _id: existingUser._id,
+      email: existingUser.email,
+      role: existingUser.role,
+    });
     const refreshToken = generateRefreshToken(existingUser._id);
 
-    await this.authRepository.updateRefreshToken(
-      existingUser._id,
-      refreshToken,
-    );
+    await authRepository.updateRefreshToken(existingUser._id, refreshToken);
 
     cacheService.setCache(
       `refreshToken:${existingUser._id}`,
@@ -123,23 +114,26 @@ export class AuthService {
       60 * 60 * 24,
     );
 
+    // Map to UserResponseDTO (without password) for response
+    const userResponse = userMapper(existingUser);
+
     return {
-      user: existingUser,
+      user: userResponse,
       token: {
         accessToken,
         refreshToken,
       },
     };
-  }
+  },
 
-  async resetPassword(
+  resetPassword: async (
     userId: Types.ObjectId,
     newPassword: string,
-  ): Promise<{ status: string; user: IUser | null }> {
+  ): Promise<{ status: string; user: UserDocument | null }> => {
     try {
       if (!newPassword || newPassword.length < 8)
         throw new BadRequestError("Please provide password 8 characters long");
-      const user = await this.authRepository.findById(userId);
+      const user = await authRepository.findById(userId);
 
       if (!user) throw new BadRequestError("User not found");
 
@@ -152,7 +146,7 @@ export class AuthService {
 
       const newHashedPAssword: string = await bcrypt.hash(newPassword, 10);
 
-      const updatedUser = await this.authRepository.findUserAndResetPassword(
+      const updatedUser = await authRepository.findUserAndResetPassword(
         userId,
         newHashedPAssword,
       );
@@ -164,23 +158,18 @@ export class AuthService {
     } catch {
       throw new BadRequestError("Password reset failed !");
     }
-  }
+  },
 
-  async updateProfile(
+  updateProfile: async (
     userInput: profileUpdateSchemaType,
     userId: Types.ObjectId,
-  ): Promise<UserResponseDTO> {
+  ): Promise<UserResponseDTO> => {
     try {
       if (!userInput) throw new BadRequestError("No field selected to update!");
 
-      const updatedUser = await this.authRepository.updateProfileById(
-        userInput,
-        userId,
-      );
-
-      return updatedUser;
+      return await authRepository.updateProfileById(userInput, userId);
     } catch {
       throw new AppError("Profile update failed!", 500);
     }
-  }
-}
+  },
+};

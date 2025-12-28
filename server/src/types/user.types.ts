@@ -2,7 +2,7 @@ import { Document, Types } from "mongoose";
 
 import { IBlog } from "@/types/blog.types";
 
-export interface IUser extends Document {
+export interface UserDocument extends Document {
   _id: Types.ObjectId;
   userName: string;
   email: string;
@@ -14,6 +14,7 @@ export interface IUser extends Document {
   isEmailVarified: boolean;
   isGoogleLogedIn: boolean;
   blogs: (Types.ObjectId | IBlog)[];
+  accessToken: string;
   refreshToken: string;
   comparePassword(password: string): Promise<boolean>;
   createdAt: Date;
@@ -32,7 +33,7 @@ export interface UserResponseDTO {
   isEmailVarified: boolean;
   isGoogleLogedIn: boolean;
   blogs: (Types.ObjectId | IBlog)[];
-  refreshToken: string;
+  accessToken: string;
   createdAt: Date;
   updatedAt: Date;
 }

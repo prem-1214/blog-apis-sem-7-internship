@@ -1,28 +1,41 @@
 import { Types } from "mongoose";
 
+import { profileUpdateSchemaType } from "@/api/v1/validators/profileUpdateSchema";
 import { userMapper } from "@/mappers/user.mapper";
 import { Role } from "@/models/role.model";
 import { User } from "@/models/user.model";
-import { profileUpdateSchemaType } from "@/schemas/profileUpdateSchema";
-import { IUser, UserResponseDTO } from "@/types/user.types";
+import { UserDocument, UserResponseDTO } from "@/types/user.types";
 import { AppError } from "@/utils/AppError";
 
-// user repository class
-export class AuthRepository {
+const FIELD_SETS = {
+  public: "_id userName email firstName lastName",
+  profile: "_id userName email firstName lastName blogs isAccountActive",
+  full: "-password -refreshToken",
+};
+
+// auth repository object
+export const authRepository = {
   // find user by _id
-  async findById(_id: Types.ObjectId): Promise<IUser | null> {
+  findById: async (_id: Types.ObjectId): Promise<UserDocument | null> => {
     return await User.findById({ _id: _id });
-  }
+  },
 
   // find user by email
-  async findByEmail(email: string): Promise<UserResponseDTO | null> {
-    const user = (await User.findOne({ email: email })) as IUser;
+  findByEmailForAuth: async (email: string): Promise<UserDocument | null> => {
+    const user = await User.findOne({ email: email });
     if (!user) return null;
-    return userMapper(user);
-  }
+    return user;
+  },
 
-  //   create user
-  async createUser(userData: Partial<IUser>): Promise<UserResponseDTO> {
+  // find user by email (public fields only)
+  findByEmail: async (email: string): Promise<UserDocument | null> => {
+    return await User.findOne({ email: email }).select(FIELD_SETS.public);
+  },
+
+  // create user
+  createUser: async (
+    userData: Partial<UserDocument>,
+  ): Promise<UserResponseDTO> => {
     try {
       const defaultRole = await Role.findOne({ name: "user" });
 
@@ -38,31 +51,31 @@ export class AuthRepository {
     } catch {
       throw new AppError("Error creating user", 400);
     }
-  }
+  },
 
   // update refreshtoken in DB
-  async updateRefreshToken(
+  updateRefreshToken: async (
     userId: Types.ObjectId,
     refreshToken: string,
-  ): Promise<IUser | null> {
+  ): Promise<UserDocument | null> => {
     return await User.findByIdAndUpdate(
       userId,
       { refreshToken },
       { new: true },
     );
-  }
+  },
 
-  //   check for available userName
-  async checkUserNameAvailability(userName: string): Promise<boolean> {
+  // check for available userName
+  checkUserNameAvailability: async (userName: string): Promise<boolean> => {
     const userNameExists = await User.findOne({ userName: userName });
     return userNameExists ? true : false;
-  }
+  },
 
   // password reset
-  async findUserAndResetPassword(
+  findUserAndResetPassword: async (
     userId: Types.ObjectId,
     hashedPassword: string,
-  ): Promise<IUser | null> {
+  ): Promise<UserDocument | null> => {
     const user = await User.findByIdAndUpdate(
       userId,
       {
@@ -72,20 +85,20 @@ export class AuthRepository {
     );
     if (!user) return null;
     return user;
-  }
+  },
 
   // update profile
-  async updateProfileById(
+  updateProfileById: async (
     userInput: profileUpdateSchemaType,
     userId: Types.ObjectId,
-  ): Promise<UserResponseDTO> {
+  ): Promise<UserResponseDTO> => {
     const updatedUser = (await User.findByIdAndUpdate(
       userId,
       {
         ...userInput,
       },
       { new: true },
-    )) as IUser;
+    )) as UserDocument;
     return userMapper(updatedUser);
-  }
-}
+  },
+};

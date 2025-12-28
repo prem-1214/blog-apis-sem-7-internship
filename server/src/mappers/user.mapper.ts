@@ -1,6 +1,6 @@
-import { IUser } from "@/types/user.types";
+import { UserDocument, UserResponseDTO } from "@/types/user.types";
 
-export const userMapper = (user: IUser) => {
+export const userMapper = (user: UserDocument): UserResponseDTO => {
   return {
     _id: user._id,
     userName: user.userName,
@@ -13,7 +13,7 @@ export const userMapper = (user: IUser) => {
     isEmailVarified: user.isEmailVarified,
     isGoogleLogedIn: user.isGoogleLogedIn,
     blogs: user.blogs,
-    refreshToken: user.refreshToken,
+    accessToken: user.accessToken,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 // Pagination metadata for list responses
 export interface PaginationMeta {
   page: number;
@@ -34,27 +32,3 @@ export interface ApiErrorResponse {
 
 // Union type for all API responses
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
-
-// User response DTO (moved from user.types.ts for convenience)
-export interface UserResponseDTO {
-  _id: Types.ObjectId;
-  userName: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: Types.ObjectId;
-  isAccountActive: boolean;
-  isEmailVarified: boolean;
-  isGoogleLogedIn: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Auth response with tokens
-export interface AuthResponseDTO {
-  user: UserResponseDTO;
-  tokens: {
-    accessToken: string;
-    refreshToken: string;
-  };
-}

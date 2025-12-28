@@ -17,4 +17,9 @@ blogRouter.post(
   createBlogHandler,
 );
 
+blogRouter.put(
+  "/:id",
+  
+)
+
 export default blogRouter;

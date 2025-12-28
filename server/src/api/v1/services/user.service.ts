@@ -1,19 +1,13 @@
 import { Types } from "mongoose";
 
-import { UserRepository } from "@/api/v1/repositories/user.repository";
+import { userRepository } from "@/api/v1/repositories/user.repository";
 import { cacheService } from "@/api/v1/services/cache.service";
-import { userMapper } from "@/mappers/user.mapper";
-import { IUser, UserResponseDTO } from "@/types/user.types";
+import { UserResponseDTO } from "@/types/user.types";
 import { InternalServerError } from "@/utils/AppError";
 
-export class UserService {
-  private userRepository: UserRepository;
-
-  constructor() {
-    this.userRepository = new UserRepository();
-  }
-
-  async getUserById(id: Types.ObjectId): Promise<UserResponseDTO | null> {
+// user service object
+export const userService = {
+  getUserById: async (id: Types.ObjectId): Promise<UserResponseDTO | null> => {
     try {
       if (!Types.ObjectId.isValid(id))
         throw new InternalServerError("Invalid user id");
@@ -23,7 +17,7 @@ export class UserService {
 
       if (cachedUser) return cachedUser;
 
-      const user = await this.userRepository.findById(id);
+      const user = await userRepository.findById(id);
       if (!user) return null;
 
       await cacheService.setCache(cacheKey, user, 60 * 10);
@@ -32,5 +26,5 @@ export class UserService {
       if (error instanceof Error) throw error;
       throw new InternalServerError("Error loading profile!");
     }
-  }
-}
+  },
+};

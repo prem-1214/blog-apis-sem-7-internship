@@ -5,9 +5,9 @@ import mongoose, {
 } from "mongoose";
 
 import "@/models/role.model";
-import { IUser } from "@/types/user.types";
+import { UserDocument } from "@/types/user.types";
 
-const userSchema = new Schema<IUser>(
+const userSchema = new Schema<UserDocument>(
   {
     userName: {
       type: String,
@@ -30,7 +30,6 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: true,
       trim: true,
       minlength: 8,
     },
@@ -69,6 +68,10 @@ const userSchema = new Schema<IUser>(
         ref: "Blog",
       },
     ],
+    accessToken: {
+      type: String,
+      default: "",
+    },
     refreshToken: {
       type: String,
       default: "",
@@ -77,7 +80,7 @@ const userSchema = new Schema<IUser>(
   { timestamps: true },
 );
 
-export const User = mongoose.model<IUser>("User", userSchema);
+export const User = mongoose.model<UserDocument>("User", userSchema);
 
 userSchema.pre(
   "save",

@@ -5,7 +5,7 @@ import { Types } from "mongoose";
 import { cacheService } from "@/api/v1/services/cache.service";
 import { config } from "@/config/config";
 import { User } from "@/models/user.model";
-import { IUser } from "@/types/user.types";
+import { UserDocument } from "@/types/user.types";
 import { UnauthorizedError } from "@/utils/AppError";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { logger } from "@/utils/logger";
@@ -37,7 +37,7 @@ export const authenticate = asyncHandler(
     const userIdStr = String(decodedToken._id);
     const cacheKey = `user:${userIdStr}`;
 
-    const cachedUser = await cacheService.getCache<IUser>(cacheKey);
+    const cachedUser = await cacheService.getCache<UserDocument>(cacheKey);
 
     if (cachedUser) {
       req.user = cachedUser;
@@ -46,7 +46,7 @@ export const authenticate = asyncHandler(
 
     const user = (await User.findById(decodedToken._id).select(
       "-password -refreshToken",
-    )) as IUser;
+    )) as UserDocument;
 
     if (!user) throw new UnauthorizedError("Unauthorized, User not found.");
 

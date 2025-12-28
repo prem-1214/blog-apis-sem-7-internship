@@ -1,12 +1,10 @@
 import { Request, Response } from "express";
 
-import { BlogService } from "@/api/v1/services/blog.service";
+import { blogService } from "@/api/v1/services/blog.service";
 import { BlogInput } from "@/api/v1/validators/blog.schema";
 import { SuccessMessages } from "@/constants/successMessage";
 import { successResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
-
-const blogService = new BlogService();
 
 export const createBlogHandler = asyncHandler(
   async (req: Request, res: Response) => {

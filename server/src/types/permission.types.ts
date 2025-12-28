@@ -9,12 +9,12 @@ export enum PermissionAction {
 
 export enum PermissionResource {
   USER = "user",
-  ROLE = "role",
-  PERMISSION = "permission",
+  BLOG = "blog",
+  COMMENT = "comment",
 }
 
 export interface IPermission extends Document {
   name: string;
   action: PermissionAction[];
-  resource: PermissionResource;
+  resource: PermissionResource[];
 }
