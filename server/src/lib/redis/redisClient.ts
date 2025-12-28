@@ -1,8 +1,8 @@
 import { RedisClientType, createClient } from "redis";
 
+import { config } from "@/config/config";
 import { AppError } from "@/utils/AppError";
 import { logger } from "@/utils/logger";
-import { config } from "@/config/config";
 
 let redisClient: RedisClientType | null = null;
 

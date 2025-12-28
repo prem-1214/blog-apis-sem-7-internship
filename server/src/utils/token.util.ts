@@ -5,7 +5,7 @@ import ms from "ms";
 import { config } from "@/config/config";
 import { IUser } from "@/types/user.types";
 
-export function generateAccessToken(user: IUser): string {
+export function generateAccessToken(user: Partial<IUser>): string {
   return jwt.sign(
     {
       _id: user._id as Types.ObjectId,

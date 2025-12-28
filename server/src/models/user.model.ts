@@ -9,7 +9,7 @@ import { IUser } from "@/types/user.types";
 
 const userSchema = new Schema<IUser>(
   {
-    username: {
+    userName: {
       type: String,
       required: true,
       trim: true,

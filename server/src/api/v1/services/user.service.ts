@@ -2,7 +2,8 @@ import { Types } from "mongoose";
 
 import { UserRepository } from "@/api/v1/repositories/user.repository";
 import { cacheService } from "@/api/v1/services/cache.service";
-import { IUser } from "@/types/user.types";
+import { userMapper } from "@/mappers/user.mapper";
+import { IUser, UserResponseDTO } from "@/types/user.types";
 import { InternalServerError } from "@/utils/AppError";
 
 export class UserService {
@@ -12,13 +13,13 @@ export class UserService {
     this.userRepository = new UserRepository();
   }
 
-  async getUserById(id: Types.ObjectId): Promise<IUser | null> {
+  async getUserById(id: Types.ObjectId): Promise<UserResponseDTO | null> {
     try {
       if (!Types.ObjectId.isValid(id))
         throw new InternalServerError("Invalid user id");
 
       const cacheKey = `user:${id}`;
-      const cachedUser = await cacheService.getCache<IUser>(cacheKey);
+      const cachedUser = await cacheService.getCache<UserResponseDTO>(cacheKey);
 
       if (cachedUser) return cachedUser;
 

@@ -6,7 +6,7 @@ import {
   profileUpdateSchema,
   profileUpdateSchemaType,
 } from "@/schemas/profileUpdateSchema";
-import { LoginInput, RegisterInput } from "@/types/auth/auth.types";
+import { LoginInput, RegisterInput } from "@/types/auth.types";
 import { ApiResponse } from "@/utils/ApiResponse";
 import { BadRequestError } from "@/utils/AppError";
 import { asyncHandler } from "@/utils/asyncHandler";
@@ -16,11 +16,6 @@ const authService = new AuthService();
 // register handler
 export const registerHandler = asyncHandler(
   async (req: Request, res: Response) => {
-    const { username, email, password, firstName, lastName } = req.body;
-
-    if (!username || !email || !password || !firstName || !lastName)
-      throw new BadRequestError("All fields are required.");
-
     const result = await authService.register(req.body as RegisterInput);
 
     const { accessToken, refreshToken } = result.token;
@@ -38,12 +33,7 @@ export const registerHandler = asyncHandler(
 // login handler
 export const loginHandler = asyncHandler(
   async (req: Request, res: Response) => {
-    const { username, email, password } = req.body as LoginInput;
-
-    if (!username || !email || !password)
-      throw new BadRequestError("All fields are required.");
-
-    const response = await authService.login(req.body);
+    const response = await authService.login(req.body as LoginInput);
 
     const { accessToken, refreshToken } = response.token;
 

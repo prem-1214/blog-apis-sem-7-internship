@@ -3,8 +3,10 @@ import { Types } from "mongoose";
 
 import { AuthRepository } from "@/api/v1/repositories/auth.repository";
 import { cacheService } from "@/api/v1/services/cache.service";
-import { LoginInput, RegisterInput } from "@/types/auth/auth.types";
-import { IUser } from "@/types/user.types";
+import { loginSchema, registerSchema } from "@/schemas/authSchema";
+import { profileUpdateSchemaType } from "@/schemas/profileUpdateSchema";
+import { LoginInput, RegisterInput } from "@/types/auth.types";
+import { IUser, UserResponseDTO } from "@/types/user.types";
 import {
   AppError,
   BadRequestError,
@@ -12,7 +14,6 @@ import {
   UnauthorizedError,
 } from "@/utils/AppError";
 import { generateAccessToken, generateRefreshToken } from "@/utils/token.util";
-import { profileUpdateSchemaType } from "@/schemas/profileUpdateSchema";
 
 export class AuthService {
   private authRepository: AuthRepository;
@@ -23,33 +24,42 @@ export class AuthService {
 
   // register service
   async register(data: RegisterInput): Promise<{
-    user: IUser;
+    user: UserResponseDTO;
     token: { accessToken: string; refreshToken: string };
   }> {
-    if (data.password.length < 8)
+    const parsedData = registerSchema.parse(data);
+
+    if (parsedData.password.length < 8)
       throw new BadRequestError("Password must be 8 characters long.");
 
-    const existingUser = await this.authRepository.findByEmail(data.email);
+    const existingUser = await this.authRepository.findByEmail(
+      parsedData.email,
+    );
 
     if (existingUser)
       throw new BadRequestError("User already exists with this email");
 
     // TODO: email varification for actual users
 
-    // check if username is available
-    const usernameAlreadyTaken =
-      await this.authRepository.checkUserNameAvailability(data.username);
+    // check if userName is available
+    const userNameAlreadyTaken =
+      await this.authRepository.checkUserNameAvailability(parsedData.userName);
 
-    if (usernameAlreadyTaken)
-      throw new BadRequestError("This username is already taken");
+    if (userNameAlreadyTaken)
+      throw new BadRequestError("This userName is already taken");
 
-    const hashedPassowrd = await bcrypt.hash(data.password, 10);
+    const hashedPassowrd = await bcrypt.hash(parsedData.password, 10);
     // send hashed password in db
     const user = await this.authRepository.createUser({
-      ...data,
+      ...parsedData,
       password: hashedPassowrd,
     });
-    const accessToken = generateAccessToken(user);
+    const accessToken = generateAccessToken({
+      _id: user._id,
+      userName: user.userName,
+      email: user.email,
+      role: user.role,
+    });
     const refreshToken = generateRefreshToken(user._id);
 
     await this.authRepository.updateRefreshToken(user._id, refreshToken);
@@ -73,11 +83,13 @@ export class AuthService {
     user: IUser;
     token: { accessToken: string; refreshToken: string };
   }> {
-    if (data.password.length < 8)
+    const parsedData = loginSchema.parse(data);
+
+    if (parsedData.password.length < 8)
       throw new BadRequestError("Password must be 8 characters long.");
 
     const existingUser = (await this.authRepository.findByEmail(
-      data.email,
+      parsedData.email,
     )) as IUser;
 
     if (!existingUser?.isAccountActive)
@@ -85,13 +97,13 @@ export class AuthService {
         "Your Account is Currently disabled ! Please contact admin",
       );
 
-    if (existingUser?.username !== data.username)
+    if (existingUser?.userName !== parsedData.userName)
       throw new BadRequestError("Username not found.");
 
     if (!existingUser) throw new NotFoundError("User not found");
 
     const verifiedPassword = await bcrypt.compare(
-      data.password,
+      parsedData.password,
       existingUser.password,
     );
 
@@ -157,11 +169,16 @@ export class AuthService {
   async updateProfile(
     userInput: profileUpdateSchemaType,
     userId: Types.ObjectId,
-  ): Promise<IUser> {
+  ): Promise<UserResponseDTO> {
     try {
       if (!userInput) throw new BadRequestError("No field selected to update!");
 
-      return await this.authRepository.updateProfileById(userInput, userId);
+      const updatedUser = await this.authRepository.updateProfileById(
+        userInput,
+        userId,
+      );
+
+      return updatedUser;
     } catch {
       throw new AppError("Profile update failed!", 500);
     }

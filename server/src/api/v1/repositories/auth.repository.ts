@@ -1,8 +1,10 @@
 import { Types } from "mongoose";
 
+import { userMapper } from "@/mappers/user.mapper";
 import { Role } from "@/models/role.model";
 import { User } from "@/models/user.model";
-import { IUser } from "@/types/user.types";
+import { profileUpdateSchemaType } from "@/schemas/profileUpdateSchema";
+import { IUser, UserResponseDTO } from "@/types/user.types";
 import { AppError } from "@/utils/AppError";
 
 // user repository class
@@ -13,12 +15,14 @@ export class AuthRepository {
   }
 
   // find user by email
-  async findByEmail(email: string): Promise<IUser | null> {
-    return (await User.findOne({ email: email })) as IUser;
+  async findByEmail(email: string): Promise<UserResponseDTO | null> {
+    const user = (await User.findOne({ email: email })) as IUser;
+    if (!user) return null;
+    return userMapper(user);
   }
 
   //   create user
-  async createUser(userData: Partial<IUser>) {
+  async createUser(userData: Partial<IUser>): Promise<UserResponseDTO> {
     try {
       const defaultRole = await Role.findOne({ name: "user" });
 
@@ -29,7 +33,8 @@ export class AuthRepository {
         role: defaultRole?._id,
       });
 
-      return await user.save();
+      const savedUser = await user.save();
+      return userMapper(savedUser);
     } catch {
       throw new AppError("Error creating user", 400);
     }
@@ -47,10 +52,10 @@ export class AuthRepository {
     );
   }
 
-  //   check for available username
-  async checkUserNameAvailability(username: string): Promise<boolean> {
-    const usernameExists = await User.findOne({ username: username });
-    return usernameExists ? true : false;
+  //   check for available userName
+  async checkUserNameAvailability(userName: string): Promise<boolean> {
+    const userNameExists = await User.findOne({ userName: userName });
+    return userNameExists ? true : false;
   }
 
   // password reset
@@ -71,15 +76,16 @@ export class AuthRepository {
 
   // update profile
   async updateProfileById(
-    userInput: { username?: string; password?: string },
+    userInput: profileUpdateSchemaType,
     userId: Types.ObjectId,
-  ): Promise<IUser> {
-    return (await User.findByIdAndUpdate(
+  ): Promise<UserResponseDTO> {
+    const updatedUser = (await User.findByIdAndUpdate(
       userId,
       {
         ...userInput,
       },
       { new: true },
     )) as IUser;
+    return userMapper(updatedUser);
   }
 }

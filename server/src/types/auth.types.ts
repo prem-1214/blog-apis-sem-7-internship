@@ -1,5 +1,5 @@
 export interface RegisterInput {
-  username: string;
+  userName: string;
   email: string;
   password: string;
   firstName: string;
@@ -7,7 +7,7 @@ export interface RegisterInput {
 }
 
 export interface LoginInput {
-  username: string;
+  userName: string;
   email: string;
   password: string;
 }
