@@ -1,15 +1,15 @@
 import mongoose, { Schema } from "mongoose";
 
-import { IComment } from "@/types/comment.types";
+import { CommentDocument } from "@/types/comment.types";
 
-const commentschema = new Schema<IComment>(
+const commentschema = new Schema<CommentDocument>(
   {
     blogId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
     },
     userId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
     },
     content: {
@@ -20,4 +20,4 @@ const commentschema = new Schema<IComment>(
   { timestamps: true },
 );
 
-export const Comment = mongoose.model<IComment>("Comment", commentschema);
+export const Comment = mongoose.model("Comment", commentschema);

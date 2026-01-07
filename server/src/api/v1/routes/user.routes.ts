@@ -3,7 +3,7 @@ import { Request, Response, Router } from "express";
 import { updateProfileHandler } from "@/api/v1/controllers/auth.controller";
 import { getUserProfileHandler } from "@/api/v1/controllers/user.controller";
 import { authenticate } from "@/middlewares/authenticate.middleware";
-import { checkRole } from "@/middlewares/checkRole.middleware.ts";
+import { checkRole } from "@/middlewares/checkRole.middleware";
 
 const userRouter = Router();
 userRouter.use(authenticate, checkRole("user"));

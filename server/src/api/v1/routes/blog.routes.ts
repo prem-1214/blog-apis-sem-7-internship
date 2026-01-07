@@ -3,7 +3,7 @@ import Router from "express";
 import { createBlogHandler } from "@/api/v1/controllers/blog.controller";
 import { authenticate } from "@/middlewares/authenticate.middleware";
 import { authorize } from "@/middlewares/authorize.middleware";
-import { checkRole } from "@/middlewares/checkRole.middleware.ts";
+import { checkRole } from "@/middlewares/checkRole.middleware";
 import { upload } from "@/middlewares/multer.middleware";
 
 const blogRouter = Router();
@@ -17,9 +17,9 @@ blogRouter.post(
   createBlogHandler,
 );
 
-blogRouter.put(
-  "/:id",
+// blogRouter.put(
+//   "/:id",
   
-)
+// )
 
 export default blogRouter;

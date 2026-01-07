@@ -4,7 +4,7 @@ import { deleteUserHandler, getAllUsersHandler, manageAccountStatusHandler } fro
 import { getUserProfileHandler } from "@/api/v1/controllers/user.controller";
 import { authenticate } from "@/middlewares/authenticate.middleware";
 import { authorize } from "@/middlewares/authorize.middleware";
-import { checkRole } from "@/middlewares/checkRole.middleware.ts";
+import { checkRole } from "@/middlewares/checkRole.middleware";
 
 const adminRouter = Router();
 

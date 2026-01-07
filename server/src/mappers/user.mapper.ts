@@ -5,7 +5,7 @@ export const userMapper = (user: UserDocument): UserResponseDTO => {
     _id: user._id,
     userName: user.userName,
     email: user.email,
-    password: user.password,
+    // password: user.password,
     firstName: user.firstName,
     lastName: user.lastName,
     role: user.role,
@@ -13,7 +13,8 @@ export const userMapper = (user: UserDocument): UserResponseDTO => {
     isEmailVarified: user.isEmailVarified,
     isGoogleLogedIn: user.isGoogleLogedIn,
     blogs: user.blogs,
-    accessToken: user.accessToken,
+    // accessToken: user.accessToken,
+    refreshToken: user.refreshToken,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

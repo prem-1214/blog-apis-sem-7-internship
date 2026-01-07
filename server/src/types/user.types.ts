@@ -25,7 +25,6 @@ export interface UserResponseDTO {
   _id: Types.ObjectId;
   userName: string;
   email: string;
-  password: string;
   firstName: string;
   lastName: string;
   role: Types.ObjectId;
@@ -33,7 +32,7 @@ export interface UserResponseDTO {
   isEmailVarified: boolean;
   isGoogleLogedIn: boolean;
   blogs: (Types.ObjectId | IBlog)[];
-  accessToken: string;
+  refreshToken: string;
   createdAt: Date;
   updatedAt: Date;
 }

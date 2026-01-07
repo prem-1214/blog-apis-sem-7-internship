@@ -8,6 +8,10 @@ app.get("/", (req, res) => {
   res.send("hello world !!!");
 });
 
+app.get("/health", (req, res) => {
+  res.send("ok");
+});
+
 (async () => {
   try {
     await connectDb();
@@ -17,7 +21,9 @@ app.get("/", (req, res) => {
     logger.info("Redis client connected successfully...");
 
     app.listen(config.get("PORT"), () => {
-      logger.info(`Server is running on port http://localhost:${config.get("PORT")}`);
+      logger.info(
+        `Server is running on port http://localhost:${config.get("PORT")}`,
+      );
     });
   } catch (error) {
     if (error instanceof Error) logger.error(error.message);

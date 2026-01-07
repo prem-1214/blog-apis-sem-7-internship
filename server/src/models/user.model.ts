@@ -80,8 +80,6 @@ const userSchema = new Schema<UserDocument>(
   { timestamps: true },
 );
 
-export const User = mongoose.model<UserDocument>("User", userSchema);
-
 userSchema.pre(
   "save",
   async function (next: CallbackWithoutResultAndOptionalError) {
@@ -96,3 +94,5 @@ userSchema.methods.comparePassword = async function (
 ): Promise<boolean> {
   return await bcrypt.compare(password, this.password);
 };
+
+export const User = mongoose.model<UserDocument>("User", userSchema);
