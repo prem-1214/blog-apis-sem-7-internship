@@ -7,8 +7,9 @@ import { successResponse } from "@/utils/ApiResponse";
 import { BadRequestError } from "@/utils/AppError";
 import { asyncHandler } from "@/utils/asyncHandler";
 
-export const getUserProfileHandler = asyncHandler(
-  async (req: Request, res: Response) => {
+// user controller object
+export const userController = {
+  getUserProfileHandler: asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user._id as Types.ObjectId;
     if (!userId) throw new BadRequestError("User not found");
 
@@ -19,5 +20,5 @@ export const getUserProfileHandler = asyncHandler(
     });
 
     return res.json(response);
-  },
-);
+  }),
+};

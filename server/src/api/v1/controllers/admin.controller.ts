@@ -5,23 +5,24 @@ import { SuccessMessages } from "@/constants/successMessage";
 import { successResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
 
-export const manageAccountStatusHandler = asyncHandler(
-  async (req: Request, res: Response) => {
-    const userId = req.params.userId as string;
-    const status = req.body.status as boolean;
+// admin controller object
+export const adminController = {
+  manageAccountStatusHandler: asyncHandler(
+    async (req: Request, res: Response) => {
+      const userId = req.params.userId as string;
+      const status = req.body.status as boolean;
 
-    const result = await adminService.manageAccountStatus(userId, status);
+      const result = await adminService.manageAccountStatus(userId, status);
 
-    const response = successResponse(result, {
-      message: SuccessMessages.UPDATED("Account status"),
-    });
+      const response = successResponse(result, {
+        message: SuccessMessages.UPDATED("Account status"),
+      });
 
-    return res.json(response);
-  },
-);
+      return res.json(response);
+    },
+  ),
 
-export const deleteUserHandler = asyncHandler(
-  async (req: Request, res: Response) => {
+  deleteUserHandler: asyncHandler(async (req: Request, res: Response) => {
     const userId = req.params.userId as string;
 
     const result = await adminService.deleteUser(userId);
@@ -31,11 +32,9 @@ export const deleteUserHandler = asyncHandler(
     });
 
     return res.json(response);
-  },
-);
+  }),
 
-export const getAllUsersHandler = asyncHandler(
-  async (req: Request, res: Response) => {
+  getAllUsersHandler: asyncHandler(async (req: Request, res: Response) => {
     const result = await adminService.getAllUsers();
 
     const response = successResponse(result, {
@@ -43,5 +42,5 @@ export const getAllUsersHandler = asyncHandler(
     });
 
     return res.json(response);
-  },
-);
+  }),
+};

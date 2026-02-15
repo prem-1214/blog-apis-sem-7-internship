@@ -22,9 +22,10 @@ const getCookieOptions = (maxAge: number) => ({
   maxAge,
 });
 
-// register handler
-export const registerHandler = asyncHandler(
-  async (req: Request, res: Response) => {
+// auth controller object
+export const authController = {
+  // register handler
+  registerHandler: asyncHandler(async (req: Request, res: Response) => {
     const result = await authService.register(req.body as RegisterInput);
     const { accessToken, refreshToken } = result.token;
 
@@ -41,12 +42,10 @@ export const registerHandler = asyncHandler(
         getCookieOptions(7 * 24 * 60 * 60 * 1000),
       ) // 7 days
       .json(response);
-  },
-);
+  }),
 
-// login handler
-export const loginHandler = asyncHandler(
-  async (req: Request, res: Response) => {
+  // login handler
+  loginHandler: asyncHandler(async (req: Request, res: Response) => {
     const result = await authService.login(req.body as LoginInput);
     const { accessToken, refreshToken } = result.token;
 
@@ -62,12 +61,10 @@ export const loginHandler = asyncHandler(
         getCookieOptions(7 * 24 * 60 * 60 * 1000),
       ) // 7 days
       .json(response);
-  },
-);
+  }),
 
-// logout handler
-export const logoutHandler = asyncHandler(
-  async (req: Request, res: Response) => {
+  // logout handler
+  logoutHandler: asyncHandler(async (req: Request, res: Response) => {
     const response = successResponse(null, {
       message: SuccessMessages.LOGOUT,
     });
@@ -76,12 +73,10 @@ export const logoutHandler = asyncHandler(
       .clearCookie("accessToken")
       .clearCookie("refreshToken")
       .json(response);
-  },
-);
+  }),
 
-// reset password handler
-export const resetPasswordHandler = asyncHandler(
-  async (req: Request, res: Response) => {
+  // reset password handler
+  resetPasswordHandler: asyncHandler(async (req: Request, res: Response) => {
     const newPassword = req.body.newPassword as string;
     if (!newPassword) throw new BadRequestError("Please provide password");
 
@@ -93,12 +88,10 @@ export const resetPasswordHandler = asyncHandler(
     });
 
     return res.json(response);
-  },
-);
+  }),
 
-// update profile handler
-export const updateProfileHandler = asyncHandler(
-  async (req: Request, res: Response) => {
+  // update profile handler
+  updateProfileHandler: asyncHandler(async (req: Request, res: Response) => {
     const userInput: profileUpdateSchemaType = req.body;
     const userId = req.user._id as Types.ObjectId;
     const parsedData = profileUpdateSchema.parse(userInput);
@@ -110,5 +103,5 @@ export const updateProfileHandler = asyncHandler(
     });
 
     return res.json(response);
-  },
-);
+  }),
+};

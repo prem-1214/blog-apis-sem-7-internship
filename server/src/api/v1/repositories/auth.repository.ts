@@ -37,18 +37,29 @@ export const authRepository = {
     userData: Partial<UserDocument>,
   ): Promise<UserResponseDTO> => {
     try {
+      console.log("createUser: Starting...", userData);
+
       const defaultRole = await Role.findOne({ name: "user" });
+      console.log("createUser: Found role:", defaultRole);
+
+      if (!defaultRole) {
+        throw new AppError("Default 'user' role not found in database", 400);
+      }
 
       const user = new User({
         ...userData,
         isEmailVarified: true,
         isAccountActive: true,
-        role: defaultRole?._id,
+        role: defaultRole._id,
       });
+      console.log("createUser: User object created");
 
       const savedUser = await user.save();
+      console.log("createUser: User saved successfully");
+
       return userMapper(savedUser);
-    } catch {
+    } catch (error) {
+      console.error("createUser error:", error);
       throw new AppError("Error creating user", 400);
     }
   },

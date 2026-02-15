@@ -38,12 +38,10 @@ export const authService = {
     if (userNameAlreadyTaken)
       throw new BadRequestError("This userName is already taken");
 
-    const hashedPassowrd = await bcrypt.hash(parsedData.password, 10);
-
     // Create user and get UserResponseDTO
+    // Note: Password hashing is handled by the User model's pre-save hook
     const user = await authRepository.createUser({
       ...parsedData,
-      password: hashedPassowrd,
     });
 
     const accessToken = generateAccessToken({

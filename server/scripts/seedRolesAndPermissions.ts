@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
-import {Permission} from "../src/models/permission.model" 
+
+import { config } from "../src/config/config";
+import { DB_NAME } from "../src/constants/index";
+import { Permission } from "../src/models/permission.model";
 import { Role } from "../src/models/role.model";
-import {config} from "../src/config/config"
-import {DB_NAME} from "../src/constants/index"
 
 const seed = async () => {
   await mongoose.connect(`${config.get("MONGODB_URI")}${DB_NAME}`);
@@ -22,12 +23,12 @@ const seed = async () => {
   // Create roles
   await Role.insertMany([
     {
-      name: "User",
+      name: "user",
       description: "Can read published blogs",
       permissions: [permMap["Read Blog"]],
     },
     {
-      name: "Author",
+      name: "author",
       description: "Can manage own blogs",
       permissions: [
         permMap["Create Blog"],
@@ -36,7 +37,7 @@ const seed = async () => {
       ],
     },
     {
-      name: "Admin",
+      name: "admin",
       description: "Full access",
       permissions: Object.values(permMap),
     },
